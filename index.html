@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Vision</title>
+  <meta name="description" content="Detect objects instantly using a pretrained AI model directly in your browser. Pure client-side inference, no backend needed.">
+  
+  <!-- Browser Tab Favicon (Matching Brand Title Eye Icon) -->
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+  <!-- Wise Typography Stack (Manrope 900 for Hero Display, Inter 600/400 for Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Manrope:wght@800;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Navigation Header (Wise Sticky Nav) -->
+  <header class="site-header">
+    <div class="header-container">
+      <div class="brand-group">
+        <a href="#" class="brand-logo" aria-label="AI Vision Homepage">
+          <span class="brand-icon-pill">
+            <i class="bi bi-eye-fill"></i>
+          </span>
+          <span class="brand-name">AI Vision</span>
+        </a>
+        <span class="badge badge-wise-pill">
+          <i class="bi bi-cpu-fill"></i>
+          COCO-SSD
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Single Focused Section: Hero & Interactive Detection Workspace -->
+  <main class="main-content">
+    <section class="hero-band single-section">
+      <div class="hero-inner">
+        <!-- Hero Header -->
+        <div class="hero-text-block">
+          <span class="hero-eyebrow">
+            <i class="bi bi-lightning-charge-fill"></i>
+            Instant Client-Side AI
+          </span>
+          <h1 class="hero-title">AI Vision</h1>
+          <p class="hero-subtitle">Browser-Based Object Detection</p>
+          <p class="hero-description">
+            Upload an image and detect common objects using a pretrained AI model — directly in your browser.
+          </p>
+
+          <!-- Model Status Bar (Pill Badge) -->
+          <div class="status-container" id="status-container" role="status" aria-live="polite">
+            <span class="status-indicator" id="status-dot"></span>
+            <span class="status-text" id="status-text">Loading model...</span>
+          </div>
+
+          <!-- Alert / Notification Component -->
+          <div class="alert-box alert-hidden" id="alert-box" role="alert">
+            <i class="bi bi-exclamation-triangle-fill alert-icon" id="alert-icon"></i>
+            <span class="alert-message" id="alert-message">Alert message placeholder</span>
+            <button type="button" class="alert-close" id="alert-close" aria-label="Close notification">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Interactive Detection Area (Signature Card on Sage Canvas) -->
+        <div id="demo" class="detector-grid">
+          <!-- Left Column: Image Canvas & Upload Area & Controls -->
+          <div class="card detector-card">
+            <div class="detector-workspace">
+              <!-- Drop & Upload Area (Visible when no image is loaded) -->
+              <div class="upload-area" id="upload-area" tabindex="0" role="button" aria-label="Upload image area. Click or drop an image here.">
+                <input type="file" id="file-input" class="file-input" accept="image/jpeg,image/jpg,image/png,image/webp">
+                <div class="upload-content">
+                  <div class="upload-icon-wrapper">
+                    <i class="bi bi-cloud-arrow-up-fill upload-icon"></i>
+                  </div>
+                  <h3 class="upload-title">Drop an image here</h3>
+                  <p class="upload-divider">or</p>
+                  <span class="btn btn-primary upload-btn">
+                    <i class="bi bi-folder2-open"></i>
+                    Browse Files
+                  </span>
+                  <p class="upload-formats">Supported formats: JPG, JPEG, PNG, WEBP (Max 15MB)</p>
+                </div>
+              </div>
+
+              <!-- Preview & Canvas Container (Visible when image is loaded) -->
+              <div class="canvas-container canvas-hidden" id="canvas-container">
+                <div class="canvas-wrapper" id="canvas-wrapper">
+                  <canvas id="detection-canvas" aria-label="Image preview and object detection display"></canvas>
+                </div>
+                <div class="canvas-meta">
+                  <span class="meta-item">
+                    <i class="bi bi-aspect-ratio"></i>
+                    <span id="image-dimensions">0 &times; 0 px</span>
+                  </span>
+                  <span class="meta-item">
+                    <i class="bi bi-file-earmark-image"></i>
+                    <span id="image-filesize">0 KB</span>
+                  </span>
+                  <span class="meta-item meta-filename">
+                    <i class="bi bi-file-text"></i>
+                    <span id="image-filename">No file selected</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Control Bar -->
+            <div class="control-bar">
+              <div class="control-group">
+                <div class="slider-header">
+                  <label for="threshold-slider" class="control-label">
+                    <i class="bi bi-sliders"></i>
+                    Confidence Threshold
+                  </label>
+                  <span class="slider-value" id="threshold-val">50%</span>
+                </div>
+                <input type="range" id="threshold-slider" class="range-slider" min="0.10" max="0.95" step="0.05" value="0.50" aria-label="Confidence threshold">
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="action-buttons">
+                <!-- Wise Primary CTA Pill (#9fe870) -->
+                <button type="button" class="btn btn-primary" id="btn-detect" disabled>
+                  <i class="bi bi-play-fill btn-icon"></i>
+                  <span>Detect Objects</span>
+                </button>
+
+                <!-- Wise Secondary Button (Sage-tinted #e8ebe6) -->
+                <button type="button" class="btn btn-secondary" id="btn-clear" disabled>
+                  <i class="bi bi-trash3 btn-icon"></i>
+                  <span>Clear</span>
+                </button>
+
+                <!-- Wise Tertiary Button (White outline) -->
+                <button type="button" class="btn btn-tertiary" id="btn-download" disabled>
+                  <i class="bi bi-download btn-icon"></i>
+                  <span>Download Result</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Detection Summary & Details -->
+          <aside class="sidebar-column">
+            <!-- Detection Summary Panel -->
+            <div class="card summary-card">
+              <div class="card-header-clean">
+                <i class="bi bi-graph-up-arrow card-header-icon"></i>
+                <h2 class="card-title">Detection Summary</h2>
+              </div>
+
+              <!-- Metric Cards -->
+              <div class="metrics-grid">
+                <div class="metric-item">
+                  <span class="metric-label">Total Objects</span>
+                  <span class="metric-val" id="stat-total">0</span>
+                </div>
+                <div class="metric-item">
+                  <span class="metric-label">Object Types</span>
+                  <span class="metric-val" id="stat-types">0</span>
+                </div>
+                <div class="metric-item">
+                  <span class="metric-label">Threshold</span>
+                  <span class="metric-val" id="stat-threshold">50%</span>
+                </div>
+              </div>
+
+              <!-- Breakdown by Category -->
+              <div class="summary-breakdown">
+                <h3 class="breakdown-title">
+                  <i class="bi bi-tags"></i>
+                  Detected Classes
+                </h3>
+                <div class="breakdown-list" id="breakdown-list">
+                  <div class="empty-state-notice">
+                    <i class="bi bi-info-circle"></i>
+                    <span>No objects detected yet. Upload an image to preview.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Detection Details (Expandable Accordion) -->
+            <details class="card details-card" id="details-accordion" open>
+              <summary class="details-summary">
+                <span class="details-heading">
+                  <i class="bi bi-card-list"></i>
+                  Detection Details
+                </span>
+                <div class="details-summary-end">
+                  <span class="details-badge" id="details-count">0 items</span>
+                  <i class="bi bi-chevron-down details-chevron"></i>
+                </div>
+              </summary>
+              <div class="details-content" id="details-list">
+                <div class="empty-state-notice">
+                  <i class="bi bi-bounding-box"></i>
+                  <span>Detailed bounding box coordinates and scores will appear after running detection.</span>
+                </div>
+              </div>
+            </details>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Site Footer (Wise Dark Footer Band #0e0f0c) -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <span class="footer-icon-pill">
+            <i class="bi bi-eye-fill"></i>
+          </span>
+          <span class="footer-title">AI Vision</span>
+        </div>
+        <span class="footer-tagline">Browser-based object detection</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Pretrained Client-Side AI Runtime & Model (Pure Browser Execution) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+  
+  <!-- Main Application Logic -->
+  <script src="script.js"></script>
+</body>
+</html>
